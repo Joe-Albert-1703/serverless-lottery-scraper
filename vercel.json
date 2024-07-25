@@ -1,9 +1,9 @@
 {
     "functions": {
-      "api/**/*.go": {
-        "runtime": "go1.x"
-      }
-    },
+        "api/*.go": {
+          "maxDuration": 30
+        }
+      },
     "routes": [
       { "src": "/api/v1/all_results", "dest": "/api/all_results.go" },
       { "src": "/api/v1/list_lotteries", "dest": "/api/list_lotteries.go" },
