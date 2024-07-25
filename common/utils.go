@@ -1,8 +1,7 @@
-package main
+package common
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -15,6 +14,7 @@ import (
 	"github.com/romanpickl/pdf"
 )
 
+// Data structures and global variables
 type WebScrape struct {
 	LotteryName string `json:"lottery_name"`
 	LotteryDate string `json:"lottery_date"`
@@ -27,12 +27,14 @@ type LotteryResults struct {
 }
 
 var (
-	lotteryResults LotteryResults
+	LotteryResultsData LotteryResults
 
+	// Regex patterns and other constants
 	numbersRegex      = regexp.MustCompile(`\d+`)
 	alphanumericRegex = regexp.MustCompile(`\[([A-Z]+ \d+)\]`)
 	seriesRegex       = regexp.MustCompile(`\[([A-Z])\]`)
 
+	// Other patterns
 	headerPattern             = `KERALA.*?( 1st)`
 	footerPattern             = `Page \d  IT Support : NIC Kerala  \d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}`
 	EndFooterPattern          = `The prize winners?.*`
@@ -46,92 +48,9 @@ var (
 	seriesSelection           = `(?:\[)(.)`
 )
 
-func getAllResults(w http.ResponseWriter, r *http.Request) {
-	if err := crawlAndSaveResults(false); err != nil {
-		http.Error(w, fmt.Sprintf("Failed to fetch results: %v", err), http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(lotteryResults)
-}
-
-func listLotteries(w http.ResponseWriter, r *http.Request) {
-	lotteryList, err := getLotteryList(false)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to fetch lotteries: %v", err), http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(lotteryList)
-}
-
-func checkTickets(w http.ResponseWriter, r *http.Request) {
-	var tickets []string
-	if err := json.NewDecoder(r.Body).Decode(&tickets); err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
-		return
-	}
-
-	if err := crawlAndSaveResults(false); err != nil {
-		http.Error(w, fmt.Sprintf("Failed to fetch results: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	winners := make(map[string]map[string][]string)
-	for lotteryName, results := range lotteryResults.Results {
-		currentWinners := checkWinningTickets(results, tickets)
-		for pos, winningTickets := range currentWinners {
-			if winners[pos] == nil {
-				winners[pos] = make(map[string][]string)
-			}
-			winners[pos][lotteryName] = append(winners[pos][lotteryName], winningTickets...)
-		}
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(winners)
-}
-
-func checkWinningTickets(results map[string][]string, tickets []string) map[string][]string {
-	winners := make(map[string][]string)
-	series := results["Series"]
-
-	for _, ticket := range tickets {
-		if !isMatchingSeries(series, ticket) {
-			continue
-		}
-		checkTicketForWinningPositions(ticket, results, winners)
-	}
-
-	return winners
-}
-
-func isMatchingSeries(series []string, ticket string) bool {
-	return len(series) > 0 && series[0] == string(ticket[0])
-}
-
-func checkTicketForWinningPositions(ticket string, results map[string][]string, winners map[string][]string) {
-	for pos, nums := range results {
-		if pos == "Series" {
-			continue
-		}
-		if isWinningTicket(ticket, nums) {
-			winners[pos] = append(winners[pos], ticket)
-		}
-	}
-}
-
-func isWinningTicket(ticket string, nums []string) bool {
-	for _, num := range nums {
-		if strings.Contains(ticket, num) {
-			return true
-		}
-	}
-	return false
-}
-
-func crawlAndSaveResults(firstVisit bool) error {
-	lotteryList, err := getLotteryList(firstVisit)
+// Utility functions
+func CrawlAndSaveResults(firstVisit bool) error {
+	lotteryList, err := GetLotteryList(firstVisit)
 	if err != nil {
 		return fmt.Errorf("failed to fetch lottery list: %w", err)
 	}
@@ -139,22 +58,18 @@ func crawlAndSaveResults(firstVisit bool) error {
 		return fmt.Errorf("no lottery list found")
 	}
 
-	// Update last updated date
-	lotteryResults.LastUpdated, _ = time.Parse("02/01/2006", lotteryList[0].LotteryDate)
-
-	// Process lottery results concurrently
-	results, err := processLotteryResults(lotteryList)
+	LotteryResultsData.LastUpdated, _ = time.Parse("02/01/2006", lotteryList[0].LotteryDate)
+	results, err := ProcessLotteryResults(lotteryList)
 	if err != nil {
 		return err
 	}
 
-	lotteryResults.Results = results
+	LotteryResultsData.Results = results
 	log.Println("Refreshed lottery results")
-
 	return nil
 }
 
-func processLotteryResults(lotteryList []WebScrape) (map[string]map[string][]string, error) {
+func ProcessLotteryResults(lotteryList []WebScrape) (map[string]map[string][]string, error) {
 	results := make(map[string]map[string][]string)
 	resultChan := make(chan struct {
 		lotteryName string
@@ -164,7 +79,7 @@ func processLotteryResults(lotteryList []WebScrape) (map[string]map[string][]str
 
 	for _, lottery := range lotteryList {
 		go func(lottery WebScrape) {
-			data, err := processLottery(lottery)
+			data, err := ProcessLottery(lottery)
 			resultChan <- struct {
 				lotteryName string
 				data        map[string][]string
@@ -189,7 +104,7 @@ func processLotteryResults(lotteryList []WebScrape) (map[string]map[string][]str
 	return results, nil
 }
 
-func processLottery(lottery WebScrape) (map[string][]string, error) {
+func ProcessLottery(lottery WebScrape) (map[string][]string, error) {
 	if lottery.LotteryName == "" {
 		return nil, nil
 	}
@@ -210,10 +125,10 @@ func processLottery(lottery WebScrape) (map[string][]string, error) {
 		return nil, fmt.Errorf("failed to extract text from PDF for %s: %v", lottery.LotteryName, err)
 	}
 
-	return parseLotteryNumbers(text), nil
+	return ParseLotteryNumbers(text), nil
 }
 
-func getLotteryList(firstVisit bool) ([]WebScrape, error) {
+func GetLotteryList(firstVisit bool) ([]WebScrape, error) {
 	var datas []WebScrape
 	now := time.Now().Local()
 	today3pm := time.Date(now.Year(), now.Month(), now.Day(), 16, 15, 0, 0, now.Location())
@@ -243,8 +158,8 @@ func getLotteryList(firstVisit bool) ([]WebScrape, error) {
 		latestDate, err := time.Parse("02/01/2006", datas[0].LotteryDate)
 		if err != nil {
 			return nil, err
-		} else if latestDate.Day() >= now.Day() || lotteryResults.LastUpdated.Day() < latestDate.Day() {
-			lotteryResults.LastUpdated = latestDate
+		} else if latestDate.Day() >= now.Day() || LotteryResultsData.LastUpdated.Day() < latestDate.Day() {
+			LotteryResultsData.LastUpdated = latestDate
 			break
 		} else if latestDate.Day() <= now.Day() && now.Before(today3pm) {
 			log.Println("current data is up to date...")
@@ -256,7 +171,7 @@ func getLotteryList(firstVisit bool) ([]WebScrape, error) {
 	return datas, nil
 }
 
-func parseLotteryNumbers(input string) map[string][]string {
+func ParseLotteryNumbers(input string) map[string][]string {
 	result := make(map[string][]string)
 	parts := strings.Split(input, "<")
 
@@ -266,22 +181,22 @@ func parseLotteryNumbers(input string) map[string][]string {
 			continue
 		}
 
-		pos, numbersPart := parsePositionAndNumbersPart(part)
-		addSeriesMatches(result, numbersPart)
-		addAlphanumericMatches(result, pos, numbersPart)
-		addNumericMatches(result, pos, numbersPart)
+		pos, numbersPart := ParsePositionAndNumbersPart(part)
+		AddSeriesMatches(result, numbersPart)
+		AddAlphanumericMatches(result, pos, numbersPart)
+		AddNumericMatches(result, pos, numbersPart)
 	}
 
 	return result
 }
 
-func parsePositionAndNumbersPart(part string) (string, string) {
+func ParsePositionAndNumbersPart(part string) (string, string) {
 	pos := strings.TrimSpace(strings.Split(part, ">")[0])
 	numbersPart := strings.TrimSpace(strings.SplitN(part, ">", 2)[1])
 	return pos, numbersPart
 }
 
-func addSeriesMatches(result map[string][]string, numbersPart string) {
+func AddSeriesMatches(result map[string][]string, numbersPart string) {
 	seriesMatches := seriesRegex.FindAllStringSubmatch(numbersPart, -1)
 	for _, match := range seriesMatches {
 		if len(match) > 1 {
@@ -290,7 +205,7 @@ func addSeriesMatches(result map[string][]string, numbersPart string) {
 	}
 }
 
-func addAlphanumericMatches(result map[string][]string, pos, numbersPart string) {
+func AddAlphanumericMatches(result map[string][]string, pos, numbersPart string) {
 	alphanumericMatches := alphanumericRegex.FindAllStringSubmatch(numbersPart, -1)
 	for _, match := range alphanumericMatches {
 		if len(match) > 1 {
@@ -299,11 +214,9 @@ func addAlphanumericMatches(result map[string][]string, pos, numbersPart string)
 	}
 }
 
-func addNumericMatches(result map[string][]string, pos, numbersPart string) {
+func AddNumericMatches(result map[string][]string, pos, numbersPart string) {
 	numericMatches := numbersRegex.FindAllString(numbersPart, -1)
-	for _, match := range numericMatches {
-		result[pos] = append(result[pos], match)
-	}
+	result[pos] = append(result[pos], numericMatches...)
 }
 
 func ExtractTextFromPDFContent(content []byte) (string, error) {
@@ -353,10 +266,19 @@ func ProcessTextContent(input string) (string, error) {
 	return input, nil
 }
 
-func main() {
-	http.HandleFunc("/api/v1/all_results", getAllResults)
-	http.HandleFunc("/api/v1/list_lotteries", listLotteries)
-	http.HandleFunc("/api/v1/check_tickets", checkTickets)
+// CheckWinningTickets checks if any of the provided tickets are winners
+func CheckWinningTickets(results map[string][]string, tickets []string) map[string][]string {
+	winners := make(map[string][]string)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	for position, numbers := range results {
+		for _, number := range numbers {
+			for _, ticket := range tickets {
+				if ticket == number {
+					winners[position] = append(winners[position], ticket)
+				}
+			}
+		}
+	}
+
+	return winners
 }
