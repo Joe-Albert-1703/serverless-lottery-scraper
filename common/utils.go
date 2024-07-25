@@ -130,8 +130,6 @@ func ProcessLottery(lottery WebScrape) (map[string][]string, error) {
 
 func GetLotteryList(firstVisit bool) ([]WebScrape, error) {
 	var datas []WebScrape
-	now := time.Now().Local()
-	today3pm := time.Date(now.Year(), now.Month(), now.Day(), 16, 15, 0, 0, now.Location())
 	c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"))
 
 	c.OnHTML("tr", func(e *colly.HTMLElement) {
@@ -143,31 +141,7 @@ func GetLotteryList(firstVisit bool) ([]WebScrape, error) {
 		}
 	})
 
-	if firstVisit {
-		c.Visit("https://statelottery.kerala.gov.in/index.php/lottery-result-view")
-		return datas, nil
-	}
-
-	for {
-		c.Visit("https://statelottery.kerala.gov.in/index.php/lottery-result-view")
-		if len(datas) == 0 {
-			log.Println("Error fetching lottery list, retrying...")
-			time.Sleep(time.Minute * 10)
-			continue
-		}
-		latestDate, err := time.Parse("02/01/2006", datas[0].LotteryDate)
-		if err != nil {
-			return nil, err
-		} else if latestDate.Day() >= now.Day() || LotteryResultsData.LastUpdated.Day() < latestDate.Day() {
-			LotteryResultsData.LastUpdated = latestDate
-			break
-		} else if latestDate.Day() <= now.Day() && now.Before(today3pm) {
-			log.Println("current data is up to date...")
-			break
-		}
-		log.Println("Latest data not available, checking again in 15 minutes...")
-		time.Sleep(time.Minute * 15)
-	}
+	c.Visit("https://statelottery.kerala.gov.in/index.php/lottery-result-view")
 	return datas, nil
 }
 
