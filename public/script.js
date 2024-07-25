@@ -10,17 +10,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function fetchResults() {
-    fetch('/results')
+    fetch('/api/v1/all_results')
         .then(response => response.json())
         .then(data => {
             const resultsContainer = document.getElementById('results-container');
             resultsContainer.innerHTML = '';
 
-            // Retrieve lotteries order from /lotteries endpoint
-            fetch('/lotteries')
+            fetch('/api/v1/list_lotteries')
                 .then(response => response.json())
                 .then(lotteries => {
-                    // Display results in the same order as lotteries
                     lotteries.forEach(lottery => {
                         const lotteryName = lottery.lottery_name;
                         const lotteryResults = data.results[lotteryName];
@@ -44,17 +42,17 @@ function createLotteryDiv(lotteryName, results) {
     const title = document.createElement('div');
     title.classList.add('lottery-title');
     title.textContent = `Lottery: ${lotteryName}`;
-    title.classList.add('collapsed'); // Initially collapsed
-    title.addEventListener('click', () => toggleCollapse(title)); // Toggle collapse on click
+    title.classList.add('collapsed');
+    title.addEventListener('click', () => toggleCollapse(title));
     lotteryDiv.appendChild(title);
 
     Object.entries(results).forEach(([position, numbers]) => {
         if (position === "Series") {
-            return; // Skip the "Series" key
+            return;
         }
 
         const positionDiv = document.createElement('div');
-        positionDiv.classList.add('position-box', 'collapsed'); // Initially collapsed
+        positionDiv.classList.add('position-box', 'collapsed');
         positionDiv.innerHTML = `<strong>${position}:</strong>`;
 
         const numbersDiv = document.createElement('div');
@@ -73,7 +71,7 @@ function createLotteryDiv(lotteryName, results) {
 }
 
 function fetchLotteries() {
-    fetch('/lotteries')
+    fetch('/api/v1/list_lotteries')
         .then(response => response.json())
         .then(data => {
             const lotteriesContainer = document.getElementById('lotteries-container');
@@ -93,7 +91,7 @@ function checkTickets() {
     const ticketsInput = document.getElementById('tickets').value;
     const tickets = ticketsInput.split(',').map(ticket => ticket.trim());
 
-    fetch('/check-tickets', {
+    fetch('/api/v1/check_tickets', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -130,20 +128,15 @@ function checkTickets() {
 }
 
 function toggleCollapse(element) {
-    // Collapse all first
-    const lotteryTitles = document.querySelectorAll('.lottery-title');
-    lotteryTitles.forEach(title => {
-        title.classList.add('collapsed');
-        const content = title.nextElementSibling;
-        if (content) {
-            content.classList.add('collapsed');
-        }
-    });
+    const isCollapsed = element.classList.contains('collapsed');
 
-    // Expand the clicked one
-    element.classList.remove('collapsed');
-    const content = element.nextElementSibling;
-    if (content) {
-        content.classList.remove('collapsed');
+    document.querySelectorAll('.lottery-title, .position-box').forEach(el => el.classList.add('collapsed'));
+
+    if (isCollapsed) {
+        element.classList.remove('collapsed');
+        const content = element.nextElementSibling;
+        if (content) {
+            content.classList.remove('collapsed');
+        }
     }
 }
