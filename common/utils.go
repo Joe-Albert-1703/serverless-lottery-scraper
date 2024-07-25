@@ -49,8 +49,8 @@ var (
 )
 
 // Utility functions
-func CrawlAndSaveResults(firstVisit bool) error {
-	lotteryList, err := GetLotteryList(firstVisit)
+func CrawlAndSaveResults() error {
+	lotteryList, err := GetLotteryList()
 	if err != nil {
 		return fmt.Errorf("failed to fetch lottery list: %w", err)
 	}
@@ -128,7 +128,7 @@ func ProcessLottery(lottery WebScrape) (map[string][]string, error) {
 	return ParseLotteryNumbers(text), nil
 }
 
-func GetLotteryList(firstVisit bool) ([]WebScrape, error) {
+func GetLotteryList() ([]WebScrape, error) {
 	var datas []WebScrape
 	c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"))
 
