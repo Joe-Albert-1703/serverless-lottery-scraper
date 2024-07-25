@@ -9,7 +9,7 @@ import (
 )
 
 func ListLotteries(w http.ResponseWriter, r *http.Request) {
-	lotteryList, err := common.GetLotteryList(false)
+	lotteryList, err := common.GetLotteryList()
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to fetch lotteries: %v", err), http.StatusInternalServerError)
 		return

@@ -156,7 +156,7 @@ func ParseLotteryNumbers(input string) map[string][]string {
 		}
 
 		pos, numbersPart := ParsePositionAndNumbersPart(part)
-		AddSeriesMatches(result, numbersPart)
+		AddSeriesMatches(result, pos, numbersPart)
 		AddAlphanumericMatches(result, pos, numbersPart)
 		AddNumericMatches(result, pos, numbersPart)
 	}
@@ -170,27 +170,32 @@ func ParsePositionAndNumbersPart(part string) (string, string) {
 	return pos, numbersPart
 }
 
-func AddSeriesMatches(result map[string][]string, numbersPart string) {
+func AddSeriesMatches(result map[string][]string, pos, numbersPart string) {
 	seriesMatches := seriesRegex.FindAllStringSubmatch(numbersPart, -1)
 	for _, match := range seriesMatches {
-		if len(match) > 1 {
-			result["Series"] = append(result["Series"], match[1])
-		}
+		result[pos] = append(result[pos], match[1])
 	}
 }
 
 func AddAlphanumericMatches(result map[string][]string, pos, numbersPart string) {
 	alphanumericMatches := alphanumericRegex.FindAllStringSubmatch(numbersPart, -1)
 	for _, match := range alphanumericMatches {
-		if len(match) > 1 {
-			result[pos] = append(result[pos], match[1])
-		}
+		result[pos] = append(result[pos], match[1])
 	}
 }
 
 func AddNumericMatches(result map[string][]string, pos, numbersPart string) {
-	numericMatches := numbersRegex.FindAllString(numbersPart, -1)
-	result[pos] = append(result[pos], numericMatches...)
+	numbersPart = alphanumericRegex.ReplaceAllString(numbersPart, "")
+	numbers := numbersRegex.FindAllString(numbersPart, -1)
+	for _, num := range numbers {
+		for i := 0; i < len(num); i += 4 {
+			end := i + 4
+			if end > len(num) {
+				end = len(num)
+			}
+			result[pos] = append(result[pos], num[i:end])
+		}
+	}
 }
 
 func ExtractTextFromPDFContent(content []byte) (string, error) {

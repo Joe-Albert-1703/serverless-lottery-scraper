@@ -9,7 +9,7 @@ import (
 )
 
 func GetAllResults(w http.ResponseWriter, r *http.Request) {
-	if err := common.CrawlAndSaveResults(false); err != nil {
+	if err := common.CrawlAndSaveResults(); err != nil {
 		http.Error(w, fmt.Sprintf("Failed to fetch results: %v", err), http.StatusInternalServerError)
 		return
 	}
