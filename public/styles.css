@@ -14,13 +14,9 @@ header {
     text-align: left;
 }
 
-main {
-    padding: 20px;
+section {
     max-width: 800px;
     margin: auto;
-}
-
-section {
     margin-bottom: 20px;
     padding: 20px;
     background-color: #1F1F1F;
