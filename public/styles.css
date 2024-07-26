@@ -57,7 +57,7 @@ a:hover {
     margin-top: 10px;
     padding: 10px;
     border: 1px solid #333;
-    background-color: #2E2E2E;
+    background-color: #030303;
     max-height: 300px;
     overflow-y: auto;
     border-radius: 5px;
@@ -83,7 +83,7 @@ a:hover {
     margin-bottom: 10px;
     border: 1px solid #444;
     border-radius: 5px;
-    background-color: #2E2E2E;
+    background-color: #030303;
     color: #E0E0E0;
 }
 
@@ -103,7 +103,7 @@ a:hover {
 .lottery-box {
     display: flex;
     flex-direction: column;
-    background-color: #2E2E2E;
+    background-color: #030303;
     margin-bottom: 15px;
     padding: 15px;
     border-radius: 5px;
@@ -168,5 +168,5 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus, 
 input:-webkit-autofill:active{
-    background-color: #2E2E2E !important;
+    background-color: #030303 !important;
 }
