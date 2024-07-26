@@ -167,3 +167,14 @@ input:-webkit-autofill:focus,
 input:-webkit-autofill:active{
     background-color: #1E1E1E !important;
 }
+
+/* Example CSS for hiding elements */
+.hidden {
+    display: none;
+}
+
+/* If using visibility: hidden, ensure element is not focusable */
+.visibility-hidden {
+    visibility: hidden;
+    pointer-events: none;
+}
