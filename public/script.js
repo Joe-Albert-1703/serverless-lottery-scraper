@@ -1,6 +1,7 @@
+let lotteryResultsData = {}; // Global variable to store lottery results
+
 document.addEventListener('DOMContentLoaded', function() {
-    fetchResults();
-    fetchLotteries();
+    fetchAllData();
 
     const ticketForm = document.getElementById('ticket-form');
     ticketForm.addEventListener('submit', function(event) {
@@ -9,29 +10,85 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function fetchResults() {
-    fetch('/api/v1/all_results')
-        .then(response => response.json())
-        .then(data => {
-            const resultsContainer = document.getElementById('results-container');
-            resultsContainer.innerHTML = '';
+function fetchAllData() {
+    // Fetch both results and lotteries in parallel
+    Promise.all([
+        fetch('/api/v1/all_results').then(response => response.json()),
+        fetch('/api/v1/list_lotteries').then(response => response.json())
+    ]).then(([resultsData, lotteriesData]) => {
+        // Process results
+        lotteryResultsData = resultsData.results; // Store the results data for later use
+        const resultsContainer = document.getElementById('results-container');
+        resultsContainer.innerHTML = '';
 
-            fetch('/api/v1/list_lotteries')
-                .then(response => response.json())
-                .then(lotteries => {
-                    lotteries.forEach(lottery => {
-                        const lotteryName = lottery.lottery_name;
-                        const lotteryResults = data.results[lotteryName];
+        lotteriesData.forEach(lottery => {
+            const lotteryName = lottery.lottery_name;
+            const lotteryResults = lotteryResultsData[lotteryName];
 
-                        if (lotteryResults) {
-                            const lotteryDiv = createLotteryDiv(lotteryName, lotteryResults);
-                            resultsContainer.appendChild(lotteryDiv);
-                        }
-                    });
-                })
-                .catch(error => console.error('Error fetching lotteries:', error));
-        })
-        .catch(error => console.error('Error fetching results:', error));
+            if (lotteryResults) {
+                const lotteryDiv = createLotteryDiv(lotteryName, lotteryResults);
+                resultsContainer.appendChild(lotteryDiv);
+            }
+        });
+
+        // Process lotteries list
+        const lotteriesContainer = document.getElementById('lotteries-container');
+        lotteriesContainer.innerHTML = '';
+
+        lotteriesData.forEach(lottery => {
+            const lotteryDiv = document.createElement('div');
+            lotteryDiv.classList.add('lottery');
+            lotteryDiv.innerHTML = `<strong>${lottery.lottery_name}</strong> (${lottery.lottery_date}) <a href="${lottery.pdf_link}" target="_blank">View PDF</a>`;
+            lotteriesContainer.appendChild(lotteryDiv);
+        });
+
+    }).catch(error => console.error('Error fetching data:', error));
+}
+
+function checkTickets() {
+    const ticketsInput = document.getElementById('tickets').value;
+    const tickets = ticketsInput.split(',').map(ticket => ticket.trim());
+    const winnersContainer = document.getElementById('winners-container');
+    winnersContainer.innerHTML = '';
+
+    const winners = {};
+
+    tickets.forEach(ticket => {
+        Object.entries(lotteryResultsData).forEach(([lottery, results]) => {
+            Object.entries(results).forEach(([position, numbers]) => {
+                if (numbers.includes(ticket)) {
+                    if (!winners[position]) {
+                        winners[position] = {};
+                    }
+                    if (!winners[position][lottery]) {
+                        winners[position][lottery] = [];
+                    }
+                    winners[position][lottery].push(ticket);
+                }
+            });
+        });
+    });
+
+    if (Object.keys(winners).length > 0) {
+        Object.entries(winners).forEach(([position, lotteries]) => {
+            const positionDiv = document.createElement('div');
+            positionDiv.classList.add('winner');
+
+            const title = document.createElement('h3');
+            title.textContent = `Position: ${position}`;
+            positionDiv.appendChild(title);
+
+            Object.entries(lotteries).forEach(([lottery, winningTickets]) => {
+                const lotteryDiv = document.createElement('div');
+                lotteryDiv.innerHTML = `<strong>${lottery}:</strong> ${winningTickets.join(', ')}`;
+                positionDiv.appendChild(lotteryDiv);
+            });
+
+            winnersContainer.appendChild(positionDiv);
+        });
+    } else {
+        winnersContainer.textContent = 'No winning tickets';
+    }
 }
 
 function createLotteryDiv(lotteryName, results) {
@@ -68,63 +125,6 @@ function createLotteryDiv(lotteryName, results) {
     });
 
     return lotteryDiv;
-}
-
-function fetchLotteries() {
-    fetch('/api/v1/list_lotteries')
-        .then(response => response.json())
-        .then(data => {
-            const lotteriesContainer = document.getElementById('lotteries-container');
-            lotteriesContainer.innerHTML = '';
-
-            data.forEach(lottery => {
-                const lotteryDiv = document.createElement('div');
-                lotteryDiv.classList.add('lottery');
-                lotteryDiv.innerHTML = `<strong>${lottery.lottery_name}</strong> (${lottery.lottery_date}) <a href="${lottery.pdf_link}" target="_blank">View PDF</a>`;
-                lotteriesContainer.appendChild(lotteryDiv);
-            });
-        })
-        .catch(error => console.error('Error fetching lotteries:', error));
-}
-
-function checkTickets() {
-    const ticketsInput = document.getElementById('tickets').value;
-    const tickets = ticketsInput.split(',').map(ticket => ticket.trim());
-
-    fetch('/api/v1/check_tickets', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(tickets),
-    })
-        .then(response => response.json())
-        .then(data => {
-            const winnersContainer = document.getElementById('winners-container');
-            winnersContainer.innerHTML = '';
-
-            if (Object.keys(data).length > 0) {
-                Object.entries(data).forEach(([position, lotteries]) => {
-                    const positionDiv = document.createElement('div');
-                    positionDiv.classList.add('winner');
-
-                    const title = document.createElement('h3');
-                    title.textContent = `Position: ${position}`;
-                    positionDiv.appendChild(title);
-
-                    Object.entries(lotteries).forEach(([lottery, winningTickets]) => {
-                        const lotteryDiv = document.createElement('div');
-                        lotteryDiv.innerHTML = `<strong>${lottery}:</strong> ${winningTickets.join(', ')}`;
-                        positionDiv.appendChild(lotteryDiv);
-                    });
-
-                    winnersContainer.appendChild(positionDiv);
-                });
-            } else {
-                winnersContainer.textContent = 'No winning tickets';
-            }
-        })
-        .catch(error => console.error('Error checking tickets:', error));
 }
 
 function toggleCollapse(element) {
