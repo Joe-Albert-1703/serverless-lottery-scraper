@@ -140,7 +140,7 @@ a:hover {
 #results-container::-webkit-scrollbar,
 #lotteries-container::-webkit-scrollbar,
 #winners-container::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 
 #results-container::-webkit-scrollbar-track,
@@ -155,6 +155,7 @@ a:hover {
 #winners-container::-webkit-scrollbar-thumb {
     background-color: #4CAF50;
     border-radius: 5px;
+    width: 4px;
 }
 
 input:-webkit-autofill,
