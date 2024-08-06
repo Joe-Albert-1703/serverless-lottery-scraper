@@ -43,8 +43,8 @@ var (
 	podiumSplit               = `FOR +.* NUMBERS`
 	lotteryTicketFull         = `[A-Z]{2} \d{6}`
 	locationString            = `\(\S+\)`
-	prizePositionString       = `((\d(st|rd|nd|th))|Cons)`
-	prizeString               = `(Prize Rs :\d+/-)|(Prize-Rs :\d+/-)`
+	prizePositionString       = `(\d+(?:st|nd|rd|th) Prize-Rs :\d+\/-|\d+(?:st|nd|rd|th) Prize Rs :\d+\/-)`
+	prizeString               = `(Prize-Rs)`
 	seriesSelection           = `(?:\[)(.)`
 )
 
@@ -223,7 +223,7 @@ func ExtractTextFromPDFContent(content []byte) (string, error) {
 }
 
 func ProcessTextContent(input string) (string, error) {
-	patternsToRemove := []string{headerPattern, footerPattern, bulletPattern, EndFooterPattern, trailingWhiteSpacePattern, locationString, podiumSplit, prizeString}
+	patternsToRemove := []string{headerPattern, footerPattern, bulletPattern, EndFooterPattern, trailingWhiteSpacePattern, locationString, podiumSplit}
 	//temp log
 	log.Println(input)
 	for _, pattern := range patternsToRemove {
@@ -236,6 +236,7 @@ func ProcessTextContent(input string) (string, error) {
 		}
 		input = re.ReplaceAllString(input, "")
 	}
+	input = regexp.MustCompile(prizeString).ReplaceAllString(input,`Prize Rs`)
 	input = regexp.MustCompile(prizePositionString).ReplaceAllString(input, ` < $0 > `)
 	input = regexp.MustCompile(lotteryTicketFull).ReplaceAllString(input, "[$0]")
 
