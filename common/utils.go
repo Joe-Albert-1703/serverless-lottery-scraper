@@ -44,7 +44,7 @@ var (
 	lotteryTicketFull         = `[A-Z]{2} \d{6}`
 	locationString            = `\(\S+\)`
 	prizePositionString       = `(((\d(st|rd|nd|th))|Cons): \d+/-)`
-	prizeString               = `(Prize Rs :\d+/-)|(Prize-Rs :\d+/-)`
+	prizeString               = `(Prize Rs :)|(Prize-Rs :)`
 	seriesSelection           = `(?:\[)(.)`
 )
 
