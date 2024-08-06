@@ -223,7 +223,7 @@ func ExtractTextFromPDFContent(content []byte) (string, error) {
 }
 
 func ProcessTextContent(input string) (string, error) {
-	patternsToRemove := []string{headerPattern, footerPattern, bulletPattern, EndFooterPattern, trailingWhiteSpacePattern, locationString, podiumSplit, prizeString}
+	patternsToRemove := []string{headerPattern, footerPattern, bulletPattern, EndFooterPattern, trailingWhiteSpacePattern, locationString, podiumSplit}
 	for _, pattern := range patternsToRemove {
 		re, err := regexp.Compile(pattern)
 		if err != nil {
