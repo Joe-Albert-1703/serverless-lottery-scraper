@@ -43,7 +43,7 @@ var (
 	podiumSplit               = `FOR +.* NUMBERS`
 	lotteryTicketFull         = `[A-Z]{2} \d{6}`
 	locationString            = `\(\S+\)`
-	prizePositionString       = `(\d+(?:st|nd|rd|th) Prize-Rs :\d+\/-|\d+(?:st|nd|rd|th) Prize Rs :\d+\/-)`
+	prizePositionString       = `(\d+(?:st|nd|rd|th) Prize Rs :\d+\/-)`
 	prizeString               = `(Prize-Rs)`
 	seriesSelection           = `(?:\[)(.)`
 )
