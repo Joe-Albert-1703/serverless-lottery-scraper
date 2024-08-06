@@ -8,6 +8,7 @@
       { "src": "/api/v1/all_results", "dest": "/api/all_results.go" },
       { "src": "/api/v1/list_lotteries", "dest": "/api/list_lotteries.go" },
       { "src": "/api/v1/check_tickets", "dest": "/api/check_tickets.go" },
+      { "src": "/api/v1/fetch_pdf", "dest": "/api/fetch_pdf.go" },
       { "src": "/(.*)", "dest": "/public/$1" }
     ]
 }
