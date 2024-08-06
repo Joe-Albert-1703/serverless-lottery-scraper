@@ -237,7 +237,7 @@ func ProcessTextContent(input string) (string, error) {
 		input = re.ReplaceAllString(input, "")
 	}
 	input = regexp.MustCompile(prizeString).ReplaceAllString(input,`Prize Rs`)
-	input = regexp.MustCompile(`Prize Rs :`).ReplaceAllString(input,`Prize Rs`)
+	input = regexp.MustCompile(`(Prize Rs :)`).ReplaceAllString(input,`Prize Rs`)
 	input = regexp.MustCompile(prizePositionString).ReplaceAllString(input, ` < $0 > `)
 	input = regexp.MustCompile(lotteryTicketFull).ReplaceAllString(input, "[$0]")
 
