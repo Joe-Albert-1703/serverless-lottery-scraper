@@ -243,20 +243,3 @@ func ProcessTextContent(input string) (string, error) {
 	}
 	return input, nil
 }
-
-// CheckWinningTickets checks if any of the provided tickets are winners
-func CheckWinningTickets(results map[string][]string, tickets []string) map[string][]string {
-	winners := make(map[string][]string)
-
-	for position, numbers := range results {
-		for _, number := range numbers {
-			for _, ticket := range tickets {
-				if ticket == number {
-					winners[position] = append(winners[position], ticket)
-				}
-			}
-		}
-	}
-
-	return winners
-}

@@ -52,6 +52,7 @@ function checkTickets() {
     winnersContainer.innerHTML = '';
 
     const winners = {};
+    const potentialWinners = {};
 
     tickets.forEach(ticket => {
         Object.entries(lotteryResultsData).forEach(([lottery, results]) => {
@@ -64,6 +65,21 @@ function checkTickets() {
                         winners[position][lottery] = [];
                     }
                     winners[position][lottery].push(ticket);
+                }
+
+                // Check for potential winners if the ticket length is 4 or 6
+                if (ticket.length === 4 || ticket.length === 6) {
+                    numbers.forEach(number => {
+                        if (ticket.endsWith(number)) {
+                            if (!potentialWinners["Potential Winner"]) {
+                                potentialWinners["Potential Winner"] = {};
+                            }
+                            if (!potentialWinners["Potential Winner"][lottery]) {
+                                potentialWinners["Potential Winner"][lottery] = [];
+                            }
+                            potentialWinners["Potential Winner"][lottery].push(ticket);
+                        }
+                    });
                 }
             });
         });
@@ -86,10 +102,32 @@ function checkTickets() {
 
             winnersContainer.appendChild(positionDiv);
         });
-    } else {
+    }
+
+    if (Object.keys(potentialWinners).length > 0) {
+        Object.entries(potentialWinners).forEach(([position, lotteries]) => {
+            const positionDiv = document.createElement('div');
+            positionDiv.classList.add('potential-winner');
+
+            const title = document.createElement('h3');
+            title.textContent = `Position: ${position}`;
+            positionDiv.appendChild(title);
+
+            Object.entries(lotteries).forEach(([lottery, potentialTickets]) => {
+                const lotteryDiv = document.createElement('div');
+                lotteryDiv.innerHTML = `<strong>${lottery}:</strong> ${potentialTickets.join(', ')}`;
+                positionDiv.appendChild(lotteryDiv);
+            });
+
+            winnersContainer.appendChild(positionDiv);
+        });
+    } 
+
+    if (Object.keys(winners).length === 0 && Object.keys(potentialWinners).length === 0) {
         winnersContainer.textContent = 'No winning tickets';
     }
 }
+
 
 function createLotteryDiv(lotteryName, results) {
     const lotteryDiv = document.createElement('div');
