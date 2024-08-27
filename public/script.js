@@ -106,7 +106,7 @@ function checkTickets() {
     if (Object.keys(potentialWinners).length > 0) {
         Object.entries(potentialWinners).forEach(([position, lotteries]) => {
             const positionDiv = document.createElement('div');
-            positionDiv.classList.add('potential-winner');
+            positionDiv.classList.add('winner');
 
             const title = document.createElement('h3');
             title.textContent = `Position: ${position}`;
