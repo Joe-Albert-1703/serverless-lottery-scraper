@@ -11,7 +11,7 @@ header {
     color: #FFFFFF;
     padding: 20px;
     padding-left: 40px;
-    text-align: left;
+    text-align: center;
 }
 
 section {
@@ -140,7 +140,7 @@ a:hover {
 #results-container::-webkit-scrollbar,
 #lotteries-container::-webkit-scrollbar,
 #winners-container::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 #results-container::-webkit-scrollbar-track,
@@ -155,7 +155,7 @@ a:hover {
 #winners-container::-webkit-scrollbar-thumb {
     background-color: #4CAF50;
     border-radius: 5px;
-    width: 4px;
+    border: 2px solid #1F1F1F;
 }
 
 input:-webkit-autofill,
