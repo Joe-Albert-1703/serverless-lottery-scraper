@@ -57,16 +57,6 @@ function checkTickets() {
     tickets.forEach(ticket => {
         Object.entries(lotteryResultsData).forEach(([lottery, results]) => {
             Object.entries(results).forEach(([position, numbers]) => {
-                if (numbers.includes(ticket)) {
-                    if (!winners[position]) {
-                        winners[position] = {};
-                    }
-                    if (!winners[position][lottery]) {
-                        winners[position][lottery] = [];
-                    }
-                    winners[position][lottery].push(ticket);
-                }
-
                 // Check for potential winners if the ticket length is 4 or 6
                 if (ticket.length === 4 || ticket.length === 6) {
                     numbers.forEach(number => {
@@ -80,6 +70,15 @@ function checkTickets() {
                             potentialWinners["Potential Winner"][lottery].push(ticket);
                         }
                     });
+                }
+                else if (numbers.includes(ticket)) {
+                    if (!winners[position]) {
+                        winners[position] = {};
+                    }
+                    if (!winners[position][lottery]) {
+                        winners[position][lottery] = [];
+                    }
+                    winners[position][lottery].push(ticket);
                 }
             });
         });
