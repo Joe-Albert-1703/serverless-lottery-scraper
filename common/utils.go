@@ -36,7 +36,7 @@ var (
 
 	// Other patterns
 	headerPattern             = `KERALA.*?( 1st)`
-	footerPattern             = `Page \d  IT Support : NIC Kerala  \d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}`
+	footerPattern             = `Page \d\D*\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}`
 	EndFooterPattern          = `The prize winners?.*`
 	trailingWhiteSpacePattern = `\s{2}.\s`
 	bulletPattern             = `(?:\d|\d{2})\)`
