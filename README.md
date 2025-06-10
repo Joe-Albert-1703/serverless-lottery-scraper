@@ -34,7 +34,3 @@ Changes can be tested using the code in https://github.com/Joe-Albert-1703/lotte
 ## Contributing
 
 Pull requests are welcome! For major changes, please open an issue first to discuss what you’d like to change.
-
-## License
-
-[MIT](LICENSE)
